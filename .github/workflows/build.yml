@@ -1,0 +1,83 @@
+# Builds the app on a Windows runner.
+#
+# Every push to master (and every pull request) uploads the zip and the installer as a downloadable artifact of
+# the run (Actions tab > the run > Artifacts). Pushing a version tag also publishes them as a GitHub release:
+#
+#   git tag v2.0.0 && git push origin v2.0.0
+#
+# The tag must match the version in cmd/musicplayer/musicplayer.rc.
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version
+        shell: pwsh
+        run: |
+          $rc = Get-Content cmd/musicplayer/musicplayer.rc -Raw
+          if ($rc -notmatch 'VALUE "ProductVersion",\s*"(\d+)\.(\d+)\.(\d+)') { throw 'ProductVersion not found in musicplayer.rc' }
+          $version = '{0}.{1}.{2}' -f $Matches[1], $Matches[2], $Matches[3]
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and "v$version" -ne $env:GITHUB_REF_NAME) {
+            throw "Tag $env:GITHUB_REF_NAME does not match version $version in cmd/musicplayer/musicplayer.rc"
+          }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-ffmpeg
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Test
+        shell: pwsh
+        env:
+          MSYS2_UCRT64: ${{ steps.msys2.outputs.msys2-location }}\ucrt64
+        run: .\scripts\build.ps1 -Test
+
+      - name: Build zip and installer
+        shell: pwsh
+        env:
+          MSYS2_UCRT64: ${{ steps.msys2.outputs.msys2-location }}\ucrt64
+        run: .\scripts\build.ps1 -Package -Installer
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MusicPlayer-${{ env.VERSION }}-windows-x64
+          path: |
+            build/MusicPlayer-windows-x64.zip
+            build/MusicPlayer-${{ env.VERSION }}-setup-x64.exe
+          compression-level: 0
+
+      - uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          name: Music Player ${{ env.VERSION }}
+          generate_release_notes: true
+          files: |
+            build/MusicPlayer-windows-x64.zip
+            build/MusicPlayer-${{ env.VERSION }}-setup-x64.exe

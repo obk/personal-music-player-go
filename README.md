@@ -6,6 +6,10 @@ A Windows desktop music player written in Go: a music library with albums, artis
 |---|---|---|
 | ![Songs](assets/screenshots/songs.png) | ![Albums](assets/screenshots/albums.png) | ![Light theme](assets/screenshots/songs-light.png) |
 
+## Download
+
+Get the installer (`MusicPlayer-<version>-setup-x64.exe`) or the portable zip (`MusicPlayer-windows-x64.zip`) from [Releases](https://github.com/obk/personal-music-player-go/releases/latest). Windows 10 or 11, x64.
+
 ## Features
 
 - **Library**: add music folders (watched: new, changed and deleted files are picked up at every start) or single files, by the *Add folder* button or by dropping folders and files from Explorer anywhere on the window. Tags are cached, so large libraries open instantly; scanning runs on background threads.
@@ -47,7 +51,7 @@ Settings live in `%AppData%\MusicPlayer\settings.json`, the library (tags cache,
 ## Project structure
 
 ```
-personal-music-player/
+personal-music-player-go/
 ├── cmd/
 │   ├── musicplayer/       Entry point: window, tray, media controls, dialogs, drag and drop (+ Windows resources)
 │   └── mkicon/            Generates the application icon for the executable
@@ -131,6 +135,15 @@ The setup installs for the current user without administrator rights (or for all
 
 Unattended install: `MusicPlayer-<version>-setup-x64.exe /VERYSILENT /CURRENTUSER` (or `/ALLUSERS`).
 
+### Releases
+
+[.github/workflows/build.yml](.github/workflows/build.yml) tests and builds the app on a Windows runner for every push to `master` and every pull request; the zip and the installer are downloadable from the run's *Artifacts* on the Actions tab. Pushing a version tag also publishes them as a GitHub release. Bump the version in `cmd/musicplayer/musicplayer.rc` first; the tag must match it:
+
+```powershell
+git tag v2.0.0
+git push origin v2.0.0
+```
+
 ## Tests
 
 ```powershell
@@ -162,7 +175,7 @@ Tests that need encoded fixtures create them with the `ffmpeg` tool and skip tho
 
 ## Contributing
 
-Pull requests and issues are welcome on [GitHub](https://github.com/obk/personal-music-player).
+Pull requests and issues are welcome on [GitHub](https://github.com/obk/personal-music-player-go).
 
 ## License
 
