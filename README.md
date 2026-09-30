@@ -8,7 +8,9 @@ A Windows desktop music player written in Go: a music library with albums, artis
 
 ## Download
 
-Get the installer (`MusicPlayer-<version>-setup-x64.exe`) or the portable zip (`MusicPlayer-windows-x64.zip`) from [Releases](https://github.com/obk/personal-music-player-go/releases/latest). Windows 10 or 11, x64.
+**[Download the installer (MusicPlayer-setup-x64.exe)](https://github.com/obk/personal-music-player-go/releases/latest/download/MusicPlayer-setup-x64.exe)** for Windows 10 or 11, x64. A portable zip (`MusicPlayer-windows-x64.zip`) and older versions are on the [Releases](https://github.com/obk/personal-music-player-go/releases) page.
+
+The installer isn't code-signed, so Windows SmartScreen may warn about it: click *More info* → *Run anyway*.
 
 ## Features
 
